@@ -87,11 +87,11 @@ public class Dictionary {
 	public static final String PATH_DIC_PREP = "preposition.dic";
 	public static final String PATH_DIC_STOP = "stopword.dic";
 
-	private final static  String FILE_NAME = "IKAnalyzer.cfg.xml";
-	private final static  String EXT_DICT = "ext_dict";
-	private final static  String REMOTE_EXT_DICT = "remote_ext_dict";
-	private final static  String EXT_STOP = "ext_stopwords";
-	private final static  String REMOTE_EXT_STOP = "remote_ext_stopwords";
+	private final static String FILE_NAME = "IKAnalyzer.cfg.xml";
+	private final static String EXT_DICT = "ext_dict";
+	private final static String REMOTE_EXT_DICT = "remote_ext_dict";
+	private final static String EXT_STOP = "ext_stopwords";
+	private final static String REMOTE_EXT_STOP = "remote_ext_stopwords";
 
 	private Path conf_dir;
 	private Properties props;
@@ -128,12 +128,13 @@ public class Dictionary {
 		}
 	}
 
-	public String getProperty(String key){
-		if(props!=null){
+	public String getProperty(String key) {
+		if (props != null) {
 			return props.getProperty(key);
 		}
 		return null;
 	}
+
 	/**
 	 * 词典初始化 由于IK Analyzer的词典采用Dictionary类的静态方法进行词典初始化
 	 * 只有当Dictionary类被实际调用时，才会开始载入词典， 这将延长首次分词操作的时间 该方法提供了一个在应用加载阶段就初始化字典的手段
@@ -153,14 +154,14 @@ public class Dictionary {
 					singleton.loadPrepDict();
 					singleton.loadStopWordDict();
 
-					if(cfg.isEnableRemoteDict()){
+					if (cfg.isEnableRemoteDict()) {
 						// 建立监控线程
 						for (String location : singleton.getRemoteExtDictionarys()) {
-							// 10 秒是初始延迟可以修改的 60是间隔时间 单位秒
-							pool.scheduleAtFixedRate(new Monitor(location), 10, 60, TimeUnit.SECONDS);
+							// 10 秒是初始延迟可以修改的 300是间隔时间 单位秒
+							pool.scheduleAtFixedRate(new Monitor(location), 10, 300, TimeUnit.SECONDS);
 						}
 						for (String location : singleton.getRemoteExtStopWordDictionarys()) {
-							pool.scheduleAtFixedRate(new Monitor(location), 10, 60, TimeUnit.SECONDS);
+							pool.scheduleAtFixedRate(new Monitor(location), 10, 300, TimeUnit.SECONDS);
 						}
 					}
 
@@ -191,13 +192,13 @@ public class Dictionary {
 	public List<String> getRemoteExtDictionarys() {
 		List<String> remoteExtDictFiles = new ArrayList<String>(2);
 		String remoteExtDictCfg = getProperty(REMOTE_EXT_DICT);
-		if (remoteExtDictCfg != null) {
 
+		if (remoteExtDictCfg != null) {
 			String[] filePaths = remoteExtDictCfg.split(";");
 			for (String filePath : filePaths) {
 				if (filePath != null && !"".equals(filePath.trim())) {
-					remoteExtDictFiles.add(filePath);
-
+					String dffix = "&flag=" + System.currentTimeMillis();
+					remoteExtDictFiles.add(filePath + dffix);
 				}
 			}
 		}
@@ -241,7 +242,6 @@ public class Dictionary {
 		return conf_dir.toAbsolutePath().toString();
 	}
 
-
 	/**
 	 * 获取词典单子实例
 	 * 
@@ -253,7 +253,6 @@ public class Dictionary {
 		}
 		return singleton;
 	}
-
 
 	/**
 	 * 批量加载新词条
